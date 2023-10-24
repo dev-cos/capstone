@@ -1,6 +1,5 @@
 package com.example.myapplication11;
 
-import android.content.ClipData;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -8,8 +7,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.ImageButton;
+import android.widget.Button;
 import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -18,34 +21,20 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.myapplication11.databinding.FragmentHomeBinding;
 import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.Tasks;
-
-import org.eazegraph.lib.charts.BarChart;
-import org.eazegraph.lib.models.BarModel;
-
-import java.util.List;
-import android.widget.AutoCompleteTextView;
-import java.util.ArrayList;
-
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link HomeFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-// 필요한 import 문 추가
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.android.gms.tasks.OnSuccessListener;
+
+import org.eazegraph.lib.charts.BarChart;
+import org.eazegraph.lib.models.BarModel;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import android.widget.TextView;
-import android.widget.Toast;
 
 
 public class HomeFragment extends Fragment {
@@ -84,7 +73,7 @@ public class HomeFragment extends Fragment {
     // 그래프 연동
     BarChart chart2;
     ImageButton button_secondsearch;
-
+    Button like_button;
     public void initView(View v){
 
         chart2 = (BarChart)v.findViewById(R.id.tab1_chart_2);
@@ -170,13 +159,14 @@ public class HomeFragment extends Fragment {
         button_secondsearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 Intent intent=new Intent(getActivity(),secondsearch.class);
                 intent.putExtra("searchType",autoCompleteTextView.getText().toString());
                 intent.putExtra("searchItem",itemSpinner.getSelectedItem().toString());
+                intent.putExtra("userDocumentName", userDocumentName); // secondsearch로 이름 전달합니다.
                 startActivity(intent);
             }
         });
-
 
 
         return root;
@@ -277,10 +267,9 @@ public class HomeFragment extends Fragment {
 
                     String itemimage_thirdsearch = doc.getString("img_url");
                     String itemtitle_thirdsearch = doc.getString("name");
-
                     // RecyclerView 아이템 추가
 
-                        adapter.addItem(new ProductItem(itemimage_thirdsearch, itemtitle_thirdsearch),productId);
+                        adapter.addItem(new ProductItem(itemimage_thirdsearch, itemtitle_thirdsearch), userDocumentName ,productId);
 
                 }
             }
