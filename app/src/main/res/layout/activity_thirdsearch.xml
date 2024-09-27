@@ -16,14 +16,14 @@
             android:orientation="vertical">
 
             <TextView
+                android:id="@+id/product_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:textSize="20sp"
-                android:textStyle="bold"
+                android:fontFamily="@font/noto_sans_bold"
                 android:gravity="center"
-                android:id="@+id/product_name"
-                 />
+                android:textSize="20sp"
+                android:textStyle="bold" />
 
             <ImageView
                 android:layout_width="250dp"
@@ -39,8 +39,9 @@
 
                 <TextView
                     android:id="@+id/price"
-                    android:layout_width="180dp"
+                    android:layout_width="150dp"
                     android:layout_height="match_parent"
+                    android:fontFamily="@font/noto_sans"
                     android:gravity="center"
                     android:text="가격 : 10원"
                     android:textSize="15dp"
@@ -48,9 +49,10 @@
 
                 <Button
                     android:id="@+id/product_page"
-                    android:layout_width="150dp"
+                    android:layout_width="120dp"
                     android:layout_height="match_parent"
                     android:layout_marginRight="20dp"
+                    android:fontFamily="@font/noto_sans_bold"
                     android:shadowColor="#A8A8A8"
                     android:shadowDx="0"
                     android:shadowDy="0"
@@ -58,6 +60,19 @@
                     android:text="상품 페이지로 이동"
                     android:textSize="14sp"
                     android:textStyle="bold" />
+                <ToggleButton
+                    android:id="@+id/button_favorite"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/button_favorite"
+                    android:checked="false"
+                    android:text=""
+                    android:textOff=""
+                    android:textOn=""
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
             </LinearLayout>
 
             <TextView
@@ -65,6 +80,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:layout_marginRight="140dp"
+                android:fontFamily="@font/noto_sans"
                 android:gravity="center"
                 android:text="리뷰 키워드"
                 android:textSize="15dp"
@@ -93,20 +109,33 @@
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="15dp"
                 android:layout_marginRight="140dp"
-                android:textSize="15dp"
-                android:textStyle="bold"
+                android:fontFamily="@font/noto_sans"
                 android:gravity="center"
-                android:text="리뷰어 특징" />
+                android:text="리뷰어 특징"
+                android:textSize="15dp"
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
-                <org.eazegraph.lib.charts.PieChart
-                    android:id="@+id/tab1_chart_1"
-                    android:layout_width="200dp"
+<!--                <org.eazegraph.lib.charts.PieChart-->
+<!--                    android:id="@+id/tab1_chart_1"-->
+<!--                    android:layout_width="200dp"-->
+<!--                    android:layout_height="200dp"-->
+<!--                    android:layout_marginLeft="10dp"-->
+<!--                    android:padding="10dp"-->
+<!--                    app:egBarWidth="20dp"-->
+<!--                    app:egEnableScroll="true"-->
+<!--                    app:egFixedBarWidth="true"-->
+<!--                    app:egLegendHeight="40dp"-->
+<!--                    app:egShowDecimal="true" />-->
+                <org.eazegraph.lib.charts.BarChart
+                    android:id="@+id/tab1_chart_3"
+                    android:layout_width="match_parent"
                     android:layout_height="200dp"
                     android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp"
                     android:padding="10dp"
                     app:egBarWidth="20dp"
                     app:egEnableScroll="true"
@@ -201,15 +230,17 @@
                 android:layout_marginVertical="20dp"
                 android:background="#e0e0e0"
                 android:orientation="vertical">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="15dp"
-                    android:textStyle="bold"
-                    android:gravity="center"
                     android:layout_marginLeft="10dp"
                     android:layout_marginTop="20dp"
-                    android:text="사용자 리뷰" />
+                    android:fontFamily="@font/noto_sans_bold"
+                    android:gravity="center"
+                    android:text="사용자 리뷰"
+                    android:textSize="15dp"
+                    android:textStyle="bold" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -223,13 +254,15 @@
                         android:layout_marginLeft="10dp"
                         android:layout_marginRight="10dp"
                         android:src="@drawable/circle"/>
+
                     <TextView
                         android:id="@+id/text1"
                         android:layout_width="wrap_content"
                         android:layout_height="60dp"
+                        android:fontFamily="@font/noto_sans"
+                        android:text="피부 촉촉해지는 느낌이 좋구요 가성비가 좋은 제품이라 듬뿍 바를수 있어 좋은것 같습니다."
                         android:textSize="15dp"
-                        android:textStyle="bold"
-                        android:text="피부 촉촉해지는 느낌이 좋구요 가성비가 좋은 제품이라 듬뿍 바를수 있어 좋은것 같습니다." />
+                        android:textStyle="bold" />
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -243,13 +276,15 @@
                         android:layout_marginLeft="10dp"
                         android:layout_marginRight="10dp"
                         android:src="@drawable/circle"/>
+
                     <TextView
                         android:id="@+id/text2"
                         android:layout_width="wrap_content"
                         android:layout_height="60dp"
+                        android:fontFamily="@font/noto_sans"
+                        android:text="피부 촉촉해지는 느낌이 좋구요 가성비가 좋은 제품이라 듬뿍 바를수 있어 좋은것 같습니다."
                         android:textSize="15dp"
-                        android:textStyle="bold"
-                        android:text="피부 촉촉해지는 느낌이 좋구요 가성비가 좋은 제품이라 듬뿍 바를수 있어 좋은것 같습니다." />
+                        android:textStyle="bold" />
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -263,13 +298,15 @@
                         android:layout_marginLeft="10dp"
                         android:layout_marginRight="10dp"
                         android:src="@drawable/circle"/>
+
                     <TextView
                         android:id="@+id/text3"
                         android:layout_width="wrap_content"
                         android:layout_height="60dp"
+                        android:fontFamily="@font/noto_sans"
+                        android:text="피부 촉촉해지는 느낌이 좋구요 가성비가 좋은 제품이라 듬뿍 바를수 있어 좋은것 같습니다."
                         android:textSize="15dp"
-                        android:textStyle="bold"
-                        android:text="피부 촉촉해지는 느낌이 좋구요 가성비가 좋은 제품이라 듬뿍 바를수 있어 좋은것 같습니다." />
+                        android:textStyle="bold" />
                 </LinearLayout>
                 <Button
                     android:id="@+id/allreview"
@@ -287,13 +324,15 @@
                     android:textSize="14sp"
                     android:textStyle="bold" />
             </LinearLayout>
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
+                android:fontFamily="@font/noto_sans_bold"
+                android:text="이 상품에 리뷰 키워드와 비슷한 제품 추천"
                 android:textSize="18dp"
-                android:textStyle="bold"
-                android:text="이 상품에 리뷰 키워드와 비슷한 제품 추천" />
+                android:textStyle="bold" />
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recycle_thirdsearch"
                 android:layout_width="match_parent"

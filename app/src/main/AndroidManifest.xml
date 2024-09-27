@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -49,6 +50,20 @@
         <activity
             android:name=".TotalReviewActivity">
         </activity>
+        <activity
+            android:name=".CommunityActivity">
+        </activity>
+        <activity
+            android:name=".Storage_Like" >
+        </activity>
+        <activity
+            android:name=".ProfileImage" >
+        </activity>
+
+        <meta-data
+            android:name="preloaded_fonts"
+            android:resource="@array/preloaded_fonts" />
+
         <!--<activity
             android:name=".MainActivity"
             android:exported="true">

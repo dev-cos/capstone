@@ -1,6 +1,10 @@
 package com.example.myapplication11;
 
 import static android.content.ContentValues.TAG;
+import static android.icu.text.DisplayContext.LENGTH_SHORT;
+
+import static com.google.firebase.firestore.FieldValue.arrayRemove;
+import static com.google.firebase.firestore.FieldValue.arrayUnion;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -12,10 +16,16 @@ import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.util.Pair;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.BounceInterpolator;
+import android.view.animation.ScaleAnimation;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -25,8 +35,12 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -34,12 +48,15 @@ import org.eazegraph.lib.charts.BarChart;
 import org.eazegraph.lib.charts.PieChart;
 import org.eazegraph.lib.models.BarModel;
 import org.eazegraph.lib.models.PieModel;
+
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 
 public class thirdsearch extends AppCompatActivity {
     private ListView ListView1;
@@ -55,19 +72,23 @@ public class thirdsearch extends AppCompatActivity {
     ImageView productImage;
     PieChart chart1;
     BarChart chart2;
+    BarChart chart3;
     String imageUrl;
     String documentName;
     String name;
     String type;
+    String user;
 
     public void initView(View v) {
-        chart1 = (PieChart) v.findViewById(R.id.tab1_chart_1);
+        //chart1 = (PieChart) v.findViewById(R.id.tab1_chart_1);
         chart2 = (BarChart) v.findViewById(R.id.tab1_chart_2);
+        chart3 = (BarChart) v.findViewById(R.id.tab1_chart_3);
     }
 
     // 파이 차트 설정
     private void setPieChart(String documentId) {
-        chart1.clearChart();
+//        chart1.clearChart();
+        chart3.clearChart();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         CollectionReference productRef = db.collection("product");
         int[] colors = {Color.parseColor("#CDA67F"), Color.parseColor("#00BFFF"), Color.parseColor("#007F7F"), Color.parseColor("#C8A2C8")};
@@ -102,7 +123,7 @@ public class thirdsearch extends AppCompatActivity {
                         });
 
                         // 값을 기준으로 내림차순으로 정렬된 엔트리 리스트 생성
-                        List<Map.Entry<String, Long>> sortedEntries = new ArrayList<>(valuesMap.entrySet());
+                       /* List<Map.Entry<String, Long>> sortedEntries = new ArrayList<>(valuesMap.entrySet());
                         sortedEntries.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
 
                         // 가장 큰 값부터 차트에 추가 (최대 4개)
@@ -129,7 +150,39 @@ public class thirdsearch extends AppCompatActivity {
                             }
                         }
 
-                        chart1.startAnimation();
+                        chart1.startAnimation();*/
+                        List<Pair<String, Float>> valueList = new ArrayList<>();
+
+                        List<Map.Entry<String, Long>> sortedEntries = new ArrayList<>(valuesMap.entrySet());
+                        sortedEntries.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
+
+                        // 가장 큰 값부터 차트에 추가 (최대 4개)
+                        for (int i = 0; i < sortedEntries.size() && i < 4; i++) {
+                            Map.Entry<String, Long> entry = sortedEntries.get(i);
+                            String type = entry.getKey();
+                            float value = entry.getValue();
+                            valueList.add(new Pair<>(type, value));
+                        }
+
+                        // 가장 큰 값 4개 찾고 정렬
+                        Collections.sort(valueList, new Comparator<Pair<String, Float>>() {
+
+                            @Override
+                            public int compare(Pair<String, Float> o1, Pair<String, Float> o2) {
+                                return o2.second.compareTo(o1.second);
+                            }
+                        });
+
+                        List<Pair<String, Float>> chartValues = new ArrayList<>();
+
+                        if (valueList.size() >= 4) {
+                            chartValues.addAll(valueList.subList(0, 4)); // 상위 4 값을 추가
+                        } else {
+                            chartValues.addAll(valueList);
+                        }
+                        setBarChart2(valueList);
+
+
                     } else {
                         Log.d(TAG, "No documents found in 'product' collection.");
                     }
@@ -195,6 +248,8 @@ public class thirdsearch extends AppCompatActivity {
     }
     private void fetchTopTenProductDetails(List<String> fieldNames) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
+        CollectionReference productRef = db.collection("product");
+
         CollectionReference keywordCollection = db.collection("keyword");
 
         keywordCollection.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
@@ -282,6 +337,21 @@ public class thirdsearch extends AppCompatActivity {
         chart2.startAnimation();
     }
 
+    private void setBarChart2(List<Pair<String, Float>> chartValues) {
+        chart3.clearChart();
+
+        int count = 0;
+
+        for (Pair<String, Float> value : chartValues) {
+            if (count < 4) {
+                chart3.addBar(new BarModel(value.first, value.second, 0xFF56B7F1));
+            }
+            count++;
+        }
+
+        chart3.startAnimation();
+    }
+
     private void fetchKeyword(String name) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         keywordCollection = db.collection("keyword");
@@ -306,12 +376,18 @@ public class thirdsearch extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_thirdsearch);
 
+        // 하트 버튼 애니메이션 라이브러리 호출
+        ScaleAnimation scaleAnimation;
+        BounceInterpolator bounceInterpolator;//애니메이션이 일어나는 동안의 회수, 속도를 조절하거나 시작과 종료시의 효과를 추가 할 수 있다
+        CompoundButton button_favorite;
+
         intent=getIntent();
         name = intent.getStringExtra("name");
+        user = intent.getStringExtra("user");
 
         datalist = new ArrayList<searchreview>();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("Search")
+        db.collection("search_product")
                 .orderBy("name") // 이름에 따라 정렬
                 .whereEqualTo("name", name) // 이름이 "John"인 데이터만 필터링
                 .limit(10)
@@ -322,59 +398,157 @@ public class thirdsearch extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 String name = document.getString("name");
-                                String review = document.getString("review");
-                                String sentence = document.getString("sentence");
-                                searchreview data = new searchreview(name,review,sentence);
+                                String review = document.getString("preprocessing_review");
+                                String positive = document.getString("positive_keyword");
+                                String negative = document.getString("negative_keyword");
+                                searchreview data = new searchreview(name,review,positive, negative); // negative 추가
                                 datalist.add(data);
                                 System.out.println(name);
                             }
-                            text1 = findViewById(R.id.text1);
-                            text2 = findViewById(R.id.text2);
-                            text3 = findViewById(R.id.text3);
+                            TextView[] textViews = {findViewById(R.id.text1), findViewById(R.id.text2), findViewById(R.id.text3)};
+                            int dataSize = datalist.size();
+
+                            if (dataSize > 0) {
+                                for (int i = 0; i < dataSize && i < textViews.length; i++) {
+                                    String review = datalist.get(i).getReview().toString();
+                                    String positiveSentence = datalist.get(i).getPositiveSentence().toString();
+                                    String negativeSentence = datalist.get(i).getNegativeSentence().toString(); // negative 추가
+
+                                    SpannableString spannableString = new SpannableString(review);
+
+                                    // Positive keyword color change
+                                    int positiveStartIndex = review.indexOf(positiveSentence);
+                                    if (positiveStartIndex != -1) {
+                                        int endIndex = positiveStartIndex + positiveSentence.length();
+                                        ForegroundColorSpan positiveForegroundSpan = new ForegroundColorSpan(Color.BLUE);
+                                        spannableString.setSpan(positiveForegroundSpan, positiveStartIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                    }
+
+                                    // Negative keyword color change
+                                    int negativeStartIndex = review.indexOf(negativeSentence); // negative 추가
+                                    if (negativeStartIndex != -1) { // negative 추가
+                                        int endIndex = negativeStartIndex + negativeSentence.length(); // negative 추가
+                                        ForegroundColorSpan negativeForegroundSpan = new ForegroundColorSpan(Color.RED); // negative 추가
+                                        spannableString.setSpan(negativeForegroundSpan, negativeStartIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE); // negative 추가
+                                    }
+
+                                    textViews[i].setText(spannableString);
+                                }
+                            } else {
+                            }
 
 
-                            String review1 = datalist.get(0).getReview().toString();
-                            String review2 = datalist.get(1).getReview().toString();
-                            String review3 = datalist.get(2).getReview().toString();
-
-                            String sentence1 = datalist.get(0).getSentence().toString();
-                            String sentence2 = datalist.get(1).getSentence().toString();
-                            String sentence3 = datalist.get(2).getSentence().toString();
 
 
-                            // 첫번째 사용자 리뷰
-                            SpannableString spannableString1 = new SpannableString(review1);
-                            int startIndex1 = review1.indexOf(sentence1); // 텍스트에서 해당하는 글자의 시작 인덱스 찾기
-                            int endIndex1 = startIndex1 + sentence1.length(); // 텍스트에서 해당하는 글자의 끝 인덱스 찾기
-                            ForegroundColorSpan foregroundSpan1 = new ForegroundColorSpan(Color.BLUE); // 파란색 스팬 생성
-                            spannableString1.setSpan(foregroundSpan1, startIndex1, endIndex1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                            text1.setText(spannableString1);
-                            // 두번째 사용자 리뷰
-                            SpannableString spannableString2 = new SpannableString(review2);
-                            int startIndex2 = review2.indexOf(sentence2); // 텍스트에서 해당하는 글자의 시작 인덱스 찾기
-                            int endIndex2 = startIndex2 + sentence2.length(); // 텍스트에서 해당하는 글자의 끝 인덱스 찾기
-                            ForegroundColorSpan foregroundSpan2 = new ForegroundColorSpan(Color.BLUE); // 파란색 스팬 생성
-                            spannableString2.setSpan(foregroundSpan2, startIndex2, endIndex2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                            text2.setText(spannableString2);
-                            // 세번째 사용자 리뷰
-                            SpannableString spannableString3 = new SpannableString(review3);
-                            int startIndex3 = review3.indexOf(sentence3); // 텍스트에서 해당하는 글자의 시작 인덱스 찾기
-                            int endIndex3 = startIndex3 + sentence3.length(); // 텍스트에서 해당하는 글자의 끝 인덱스 찾기
-                            ForegroundColorSpan foregroundSpan3 = new ForegroundColorSpan(Color.BLUE); // 파란색 스팬 생성
-                            spannableString3.setSpan(foregroundSpan3, startIndex3, endIndex3, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                            text3.setText(spannableString3);
                         } else {
                             Log.d(TAG, "Error getting documents: " + task.getException());
                         }
                     }
                 });
+        // 하트 출력 부분
+        scaleAnimation = new ScaleAnimation(0.7f, 1.0f, 0.7f, 1.0f, Animation.RELATIVE_TO_SELF, 0.7f, Animation.RELATIVE_TO_SELF, 0.7f);
+
+        scaleAnimation.setDuration(500);
+        bounceInterpolator = new BounceInterpolator();
+        scaleAnimation.setInterpolator(bounceInterpolator);
+
+        button_favorite = findViewById(R.id.button_favorite);
+        // Firestore에서 userDocumenName을 이용해 DocumentReference 생성
+        DocumentReference userDocRef;
+        try {
+            userDocRef = db.collection("users").document(user);
+            button_favorite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                    compoundButton.startAnimation(scaleAnimation);
+                    if(isChecked==true){
+                        System.out.println("클릭됨");
+                        FirebaseFirestore db = FirebaseFirestore.getInstance();
+                        // 기존 배열 가져오기
+                        userDocRef.get().addOnSuccessListener(documentSnapshot -> {
+                            if (documentSnapshot.exists()) {
+                                List<String> existingArray = (List<String>) documentSnapshot.get("Like");
+                                if(existingArray.contains(name)){
+                                    System.out.println("이미 저장됨");
+                                }else {
+                                    // 새로운 요소 추가
+                                    existingArray.add(name);
+                                    // 수정된 배열 다시 저장
+                                    userDocRef.update("Like", existingArray)
+                                            .addOnSuccessListener(aVoid -> {
+                                                // 요소 추가 성공
+                                            })
+                                            .addOnFailureListener(e -> {
+                                                // 요소 추가 실패
+                                            });
+                                }
+                            }
+                        });
+                    }else{
+                        System.out.println("클릭안됨");// 기존 배열 가져오기
+                        userDocRef.get().addOnSuccessListener(documentSnapshot -> {
+                            if (documentSnapshot.exists()) {
+                                List<String> existingArray = (List<String>) documentSnapshot.get("Like");
+
+                                // 삭제할 요소의 인덱스 찾기
+                                int indexToRemove = existingArray.indexOf(name);
+                                if (indexToRemove >= 0) {
+                                    existingArray.remove(indexToRemove);
+
+                                    // 수정된 배열 다시 저장
+                                    userDocRef.update("Like", existingArray)
+                                            .addOnSuccessListener(aVoid -> {
+                                                // 요소 삭제 성공
+                                            })
+                                            .addOnFailureListener(e -> {
+                                                // 요소 삭제 실패
+                                            });
+                                }
+                            }
+                        });
+
+                    }
+                }
+            });
+
+            // 이미 좋아요 등록을 했다면 눌려있게 만들기
+
+            // DocumentReference로부터 데이터를 읽어오는 작업 실행
+            userDocRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document != null && document.exists()) {
+                            System.out.println(document.get("Like"));
+                            String str = document.get("Like").toString();
+                            System.out.println(str.contains("123"));
+                            if(str.contains(name)){
+                                button_favorite.setChecked(true);
+                            }
+                        } else {
+                            Log.d(TAG, "No such document");
+                        }
+                    } else {
+                        Log.d(TAG, "get failed with ", task.getException());
+                    }
+                }
+            });
+        }
+        catch (NullPointerException e){
+
+        }
 
 
 
+        // 좋아요 버튼을 누르면 user에 등록 되고 한번 더 누르면 삭제 되게 만들기
+
+        // 상품 이미지 및 이름 출력부분
         productName = findViewById(R.id.product_name);
         productImage = findViewById(R.id.product_image);
-        chart1 = findViewById(R.id.tab1_chart_1);
+        //chart1 = findViewById(R.id.tab1_chart_1);
         chart2 = findViewById(R.id.tab1_chart_2);
+        chart3 = findViewById(R.id.tab1_chart_3);
 
         Intent intent = getIntent();
         if (intent != null) {
@@ -386,9 +560,20 @@ public class thirdsearch extends AppCompatActivity {
             Glide.with(thirdsearch.this)
                     .load(imageUrl)
                     .into(productImage); // 이미지 로드
+            CollectionReference productRef = db.collection("product");
+            productRef.get()
+                    .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                        @Override
+                        public void onSuccess(QuerySnapshot productQueryDocumentSnapshots) {
+                            for (QueryDocumentSnapshot productDoc : productQueryDocumentSnapshots) {
+                                String productName = productDoc.getString("name");
 
+                                if (productName != null && productName.equals(name)) {
+                                    String productId = productDoc.getId();
+                                    setPieChart(productId);
+                                }}}});
             // 파이 차트 설정
-            setPieChart(documentName);
+
 
             // 리사이클러뷰 설정
             RecyclerView recyclerView = findViewById(R.id.recycle_thirdsearch);
