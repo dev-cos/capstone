@@ -26,6 +26,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 // 제품 태그검색시 나오는 페이지 adapter과 viewholder 사용
@@ -99,6 +100,7 @@ public class Storage_Like extends AppCompatActivity {
                             }
                         }
                     });
+
         }
 
 

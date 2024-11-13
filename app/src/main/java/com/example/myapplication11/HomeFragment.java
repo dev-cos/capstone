@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.myapplication11.databinding.FragmentHomeBinding;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -34,6 +35,7 @@ import org.eazegraph.lib.models.BarModel;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -277,24 +279,39 @@ public class HomeFragment extends Fragment {
                         preferenceTextView.setText(user_preference1 + " " + user_preference2);
 
                         if (user_preference1 == null && user_preference2 == null) {
-                            // 두 사용자 환경설정이 모두 NULL인 경우 처리
                             preferenceTextView.setText("사용자 환경설정이 없습니다.");
                             preferenceTextView_1.setText("");
-
                         } else {
-                            Task<QuerySnapshot> mainTask = null; // 여기에 null로 초기화를 추가합니다.
+                            Task<QuerySnapshot> mainTask = null;
 
-                            if (user_preference1 != null) {
+                            // 두 선호도가 모두 있는 경우
+                            if (user_preference1 != null && user_preference2 != null) {
+                                mainTask = db.collection("product")
+                                        .get()
+                                        .addOnSuccessListener(querySnapshot -> {
+                                            List<DocumentSnapshot> documents = querySnapshot.getDocuments();
+
+                                            // 평균값으로 정렬
+                                            Collections.sort(documents, (doc1, doc2) -> {
+                                                double avg1 = (doc1.getDouble(user_preference1) + doc1.getDouble(user_preference2))/2 ;
+                                                double avg2 = (doc2.getDouble(user_preference1) + doc2.getDouble(user_preference2))/2 ;
+                                                return Double.compare(avg2, avg1);
+                                            });
+                                        });
+                            }
+                            // 하나의 선호도만 있는 경우
+                            else if (user_preference1 != null) {
                                 mainTask = db.collection("product")
                                         .orderBy(FieldPath.of(user_preference1), Query.Direction.DESCENDING)
                                         .limit(10)
                                         .get();
-                            } else if(user_preference2 != null) {
+                            } else {
                                 mainTask = db.collection("product")
                                         .orderBy(FieldPath.of(user_preference2), Query.Direction.DESCENDING)
                                         .limit(10)
                                         .get();
                             }
+
 
 // mainTask가 정상적으로 초기화되었다면 처리를 진행합니다.
                             if (mainTask != null) {
