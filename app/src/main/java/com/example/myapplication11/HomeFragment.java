@@ -266,14 +266,14 @@ public class HomeFragment extends Fragment {
         }
         // 사용자 정보 가져오기
         db.collection( "users")
-                .document(userDocumentName) // 로그인 사용자의 ID를 지정해 주세요
+                .document(userDocumentName) // 클라이언트 컬렉션
                 .get()
                 .addOnSuccessListener(document -> {
                     if (document.exists()) {
                         String user_preference1 = document.getString("user_preference_1");
                         String user_preference2 = document.getString("user_preference_2");
 
-                        // Get the TextView and set its text
+                        // TextView 작성
                         TextView preferenceTextView = binding.preference;
                         TextView preferenceTextView_1 = binding.preference1;
                         preferenceTextView.setText(user_preference1 + " " + user_preference2);
